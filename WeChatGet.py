@@ -27,7 +27,7 @@ class WeChatGet:
                     win_height=1000,
                     find_window_timeout=30):
         # 连接程序， 微信Process
-        app = Application('uia').connect(process=4688)
+        app = Application('uia').connect(process=4780)
         self.main_win = app.window(title=u"微信", class_name="WeChatMainWndForPC")
         self.main_win.set_focus()
         self.app = app
@@ -36,10 +36,9 @@ class WeChatGet:
         self.click_url_interval = click_url_interval
         self.counter_interval = counter_interval
         self.read_count_init_pg_down = read_count_init_pg_down
-        self.browser = None
         self.win_width = win_width
         self.win_height = win_height
-        self.app2 = Application().connect(process=4688)
+        self.app2 = Application().connect(process=4780)
         self.move_window()
 
     def move_window(self):
@@ -58,7 +57,6 @@ class WeChatGet:
             win_rect = self.main_win.rectangle()
             x = (coords.left + coords.right) // 2 - win_rect.left
             y = (coords.top + coords.bottom) // 2 - win_rect.top
-            print(x, y)
             if pywingui_click:
                 pyautogui.leftClick(x=x, y=y)
             else:
@@ -107,12 +105,10 @@ class WeChatGet:
         self.main_win.type_keys(user)
         for i in range(retry):
             time.sleep(1)
-            print(i)
             try:
                 search_list = self.main_win.child_window(title="搜索结果")
                 match_result = search_list.child_window(title=user, control_type="ListItem")
                 self.click_center(match_result)
-                # match_result.print_control_identifiers()
                 return True
             except Exception as e:
                 print(e)
@@ -131,6 +127,47 @@ class WeChatGet:
         except Exception as e:
             print(e)
 
+    def click_head_element(self, elem):
+        """
+        点击聊条成员头像
+        :param elem:
+        :return:
+        """
+        try:
+            elem.draw_outline(colour='blue')
+            head_dailog = self.main_win.child_window(class_name="ContactProfileWnd")
+            head_dailog.print_control_identifiers()
+            # print(head_dailog.element_info.name)
+            # elel_all = head_dailog.child_window(title_re="*")
+            # elel_all.print_control_identifiers()
+            pane = head_dailog.children()[1].children()[0].children()[0].children()[0].children()[0].children()[0]
+            print(pane)
+            print(pane.element_info.name)
+            # for item in pane:
+            #     print(item.name)
+            #     print("pane ===", item)
+            #     item.print_control_identifiers()
+
+            head_dailog.type_keys("{ESC}")
+        except Exception as e:
+            print(e)
+
+    def get_wechat_id(self):
+        try:
+            text = self.main_win.child_window(title="聊天", control_type="Button")
+            btn = text.parent().children()[0]
+            self.click_center(btn)
+
+            label = self.main_win.child_window(title="微信号：")
+            p = label.parent().children()[1]
+            wechat_id = p.element_info.name
+            self.click_center(btn)
+        except:
+            pass
+
+        return wechat_id
+
+
     def session_chat_room_Detail_Wnd(self):
         """
         聊天信息详情
@@ -138,31 +175,26 @@ class WeChatGet:
         """
         detail_win = self.main_win.child_window(class_name="SessionChatRoomDetailWnd")
         detail_win.draw_outline(colour='red')
-        # detail_win.print_control_identifiers()
         more_button = detail_win.child_window(title="查看更多群成员", control_type="Button")
         more_button.draw_outline(colour='red')
         self.click_center(more_button, pywingui_click=True)
-        time.sleep(30)
-        # time.sleep(1)
-        # coords = pyautogui.locateOnScreen("./more.png")
-        # print("移动鼠标", coords)
-        # x = coords.left + coords.width//2
-        # y = coords.top + coords.height//2
-        # print(x, y)
-        # detail_win.click_input(coords=(x, y))
-        # time.sleep(10)
-
-        # member_win = detail_win.child_window(title="聊天成员", control_type="List")
-        # member_win.draw_outline(colour='red')
-        # for item in member_win:
-        #     print(item)
-            # self.click_center(item)
+        time.sleep(0.5)
+        member_win = detail_win.child_window(title="聊天成员", control_type="List")
+        member_win.draw_outline(colour='red')
+        is_first_item = True
+        for item in member_win:
+            if is_first_item:
+                is_first_item = False
+            else:
+                self.click_center(item, pywingui_click=True)
+                self.click_head_element(item)
+                break
 
     def main(self):
         self.locate_user("产研运大军")
         time.sleep(1)
+        # print(self.get_wechat_id())
         self.chat_message()
-        time.sleep(1)
         self.session_chat_room_Detail_Wnd()
 
 
