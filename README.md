@@ -1,3 +1,4 @@
 # Wechat
 Get Wechat group chat
-获取微信群成员昵称
+## 杩愯WeChatGet.py
+## 缁撴灉淇濆瓨鍦╮esult.txt
