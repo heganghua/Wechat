@@ -202,7 +202,6 @@ class WeChatGet:
         self.chat_message()
         self.session_chat_room_Detail_Wnd()
 
-
 if __name__ == '__main__':
     wc = WeChatGet()
     wc.main()
